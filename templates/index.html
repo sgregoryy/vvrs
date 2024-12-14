@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blockchain Client</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <style>
+        /* Critical styles for tab functionality */
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* Tab button styles */
+        .tab-btn {
+            @apply px-4 py-2 text-gray-600 border-b-2 border-transparent;
+            transition: all 0.3s ease;
+        } 
+        .tab-btn:hover {
+            @apply text-gray-800 border-gray-300;
+        }
+        .tab-btn.active {
+            @apply text-blue-600 border-blue-600;
+        }
+        /* Animation for content switching */
+        .tab-content {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .tab-content.active {
+            opacity: 1;
+        }
+        /* Notification styles */
+        #notifications {
+            z-index: 1000;
+        }
+        .notification {
+            transition: all 0.3s ease;
+            transform: translateX(100%);
+        }
+        .notification.show {
+            transform: translateX(0);
+        }
+    </style>
+  </head>
+  <body class="bg-gray-100">
+    <div id="notifications" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+      <div class="bg-white shadow-lg rounded-lg p-6">
+        <h1 class="text-2xl font-bold mb-6">Blockchain Client</h1>
+
+        <!-- Account Section -->
+        <div class="mb-6 pb-6 border-b">
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-2"
+              >Select Account:</label
+            >
+            <select id="accountSelect" class="w-full p-2 border rounded">
+              <option value="">Select an account</option>
+            </select>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium mb-2">Username:</label>
+              <input
+                type="text"
+                id="username"
+                class="w-full p-2 border rounded"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Password:</label>
+              <input
+                type="password"
+                id="password"
+                class="w-full p-2 border rounded"
+              />
+            </div>
+            <div class="flex space-x-4">
+              <button
+                id="loginBtn"
+                class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              >
+                Login
+              </button>
+              <button
+                id="checkBalanceBtn"
+                class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+              >
+                Check Balance
+              </button>
+              <button
+                id="logoutBtn"
+                class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              >
+                Logout
+              </button>
+            </div>
+            <div id="balanceDisplay" class="text-lg font-semibold hidden">
+              Balance: <span id="balanceAmount">0</span> coins
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="border-b border-gray-200 mb-6">
+          <nav class="flex space-x-4">
+            <button class="tab-btn active" data-tab="transfer">
+              <span class="flex items-center">
+                <svg
+                  class="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  ></path>
+                </svg>
+                Transfer Coins
+              </span>
+            </button>
+            <button class="tab-btn" data-tab="messages">
+              <span class="flex items-center">
+                <svg
+                  class="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                  ></path>
+                </svg>
+                Messages
+              </span>
+            </button>
+            <button class="tab-btn" data-tab="encrypted">
+              <span class="flex items-center">
+                <svg
+                  class="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  ></path>
+                </svg>
+                Encrypted Messages
+              </span>
+            </button>
+            <button class="tab-btn" data-tab="history">
+              <span class="flex items-center">
+                <svg
+                  class="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  ></path>
+                </svg>
+                History
+              </span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Tab Contents -->
+        <div id="transfer" class="tab-content active">
+          <div class="space-y-4">
+            <h2 class="text-xl font-semibold">Transfer Coins</h2>
+            <div>
+              <label class="block text-sm font-medium mb-2">From Hash:</label>
+              <input
+                type="text"
+                id="fromHash"
+                class="w-full p-2 border rounded"
+                readonly
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">To Hash:</label>
+              <input
+                type="text"
+                id="toHash"
+                class="w-full p-2 border rounded"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Amount:</label>
+              <input
+                type="number"
+                id="coins"
+                class="w-full p-2 border rounded"
+                min="1"
+              />
+            </div>
+            <button
+              id="sendTaskBtn"
+              class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            >
+              Send Coins
+            </button>
+          </div>
+        </div>
+
+        <div id="messages" class="tab-content">
+          <div class="space-y-4">
+            <h2 class="text-xl font-semibold">Send Message</h2>
+            <div>
+              <label class="block text-sm font-medium mb-2">To Hash:</label>
+              <input
+                type="text"
+                id="plainMessageToHash"
+                class="w-full p-2 border rounded"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Message:</label>
+              <textarea
+                id="plainMessageText"
+                class="w-full p-2 border rounded"
+                rows="3"
+              ></textarea>
+            </div>
+            <button
+              id="sendPlainMessageBtn"
+              class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600"
+            >
+              Send Message
+            </button>
+          </div>
+        </div>
+
+        <div id="encrypted" class="tab-content">
+          <div class="space-y-4">
+            <h2 class="text-xl font-semibold">Send Encrypted Message</h2>
+            <div>
+              <label class="block text-sm font-medium mb-2">To Hash:</label>
+              <input
+                type="text"
+                id="messageToHash"
+                class="w-full p-2 border rounded"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Message:</label>
+              <textarea
+                id="messageText"
+                class="w-full p-2 border rounded"
+                rows="3"
+              ></textarea>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Private Key:</label>
+              <input
+                type="password"
+                id="messagePrivateKey"
+                class="w-full p-2 border rounded"
+              />
+            </div>
+            <button
+              id="sendMessageBtn"
+              class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600"
+            >
+              Send Encrypted Message
+            </button>
+          </div>
+
+          <div class="mt-8 space-y-4">
+            <h2 class="text-xl font-semibold">Decrypt Message</h2>
+            <div>
+              <label class="block text-sm font-medium mb-2"
+                >Encrypted Message:</label
+              >
+              <textarea
+                id="encryptedMessage"
+                class="w-full p-2 border rounded"
+                rows="3"
+              ></textarea>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Private Key:</label>
+              <input
+                type="password"
+                id="decryptPrivateKey"
+                class="w-full p-2 border rounded"
+              />
+            </div>
+            <button
+              id="decryptMessageBtn"
+              class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+            >
+              Decrypt Message
+            </button>
+            <div
+              id="decryptedMessageDisplay"
+              class="mt-2 p-4 bg-gray-100 rounded hidden"
+            >
+              <h3 class="font-semibold">Decrypted Message:</h3>
+              <p id="decryptedMessageText" class="mt-2"></p>
+            </div>
+          </div>
+        </div>
+
+        <div id="history" class="tab-content">
+          <div class="space-y-4">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-semibold">Message History</h2>
+              <div class="space-x-2">
+                <button
+                  id="showAllMessagesBtn"
+                  class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                >
+                  All Messages
+                </button>
+                <button
+                  id="showPlainMessagesBtn"
+                  class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                >
+                  Plain Messages
+                </button>
+                <button
+                  id="showEncryptedMessagesBtn"
+                  class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+                >
+                  Encrypted Messages
+                </button>
+                <button
+                  id="refreshMessagesBtn"
+                  class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                  Refresh
+                </button>
+              </div>
+            </div>
+            <div
+              id="messagesList"
+              class="space-y-4 max-h-96 overflow-y-auto"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Task Control Buttons -->
+        <div class="flex space-x-4 mt-6 pt-6 border-t">
+          <button
+            id="startSolvingBtn"
+            class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+          >
+            Start Solving Tasks
+          </button>
+          <button
+            id="stopSolvingBtn"
+            class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          >
+            Stop Solving Tasks
+          </button>
+        </div>
+
+        <!-- Output Area -->
+        <div class="border rounded p-4 bg-gray-50 mt-6">
+          <h2 class="text-lg font-semibold mb-2">Output:</h2>
+          <div
+            id="output"
+            class="h-48 overflow-y-auto font-mono text-sm whitespace-pre-wrap"
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let isTaskSolving = false;
+
+      function showNotification(message, type = "info") {
+        const notifications = document.getElementById("notifications");
+        const notification = document.createElement("div");
+        const bgColors = {
+          info: "bg-blue-500",
+          error: "bg-red-500",
+          success: "bg-green-500",
+          warning: "bg-yellow-500",
+        };
+        notification.className = `${bgColors[type]} text-white px-6 py-4 rounded-lg shadow-lg max-w-md`;
+        notification.textContent = message;
+        notifications.appendChild(notification);
+        setTimeout(() => notification.remove(), 5000);
+      }
+
+      function addOutput(message) {
+        const output = document.getElementById("output");
+        const timestamp = new Date().toLocaleString();
+        output.innerHTML += `${timestamp} - ${message}\n`;
+        output.scrollTop = output.scrollHeight;
+      }
+
+      function validateHash(hash) {
+        return /^[a-f0-9]{64}$/.test(hash);
+      }
+
+      async function loadAccounts() {
+        try {
+          const response = await fetch("/api/accounts");
+          const data = await response.json();
+          const select = document.getElementById("accountSelect");
+          select.innerHTML = '<option value="">Select an account</option>';
+          data.accounts.forEach((account) => {
+            const option = document.createElement("option");
+            option.value = account;
+            option.textContent = account;
+            select.appendChild(option);
+          });
+          addOutput("Accounts loaded successfully");
+        } catch (error) {
+          showNotification(`Error loading accounts: ${error.message}`, "error");
+          addOutput(`Error loading accounts: ${error.message}`);
+        }
+      }
+
+      async function loadAccountData(username) {
+        try {
+          const response = await fetch(`/api/account/${username}`);
+          const data = await response.json();
+          if (response.ok) {
+            document.getElementById("username").value = data.username;
+            document.getElementById("password").value = data.password;
+            document.getElementById("fromHash").value = data.user_hash;
+            showNotification(`Account ${username} loaded`, "success");
+            addOutput(`Loaded account: ${username}`);
+          } else {
+            showNotification(data.error || "Failed to load account", "error");
+          }
+        } catch (error) {
+          showNotification(`Error loading account: ${error.message}`, "error");
+          addOutput(`Error loading account data: ${error.message}`);
+        }
+      }
+
+      async function login() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        if (!username || !password) {
+          showNotification("Username and password are required", "warning");
+          return;
+        }
+        try {
+          const response = await fetch("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+          const data = await response.json();
+          if (response.ok) {
+            showNotification("Successfully logged in!", "success");
+            addOutput(`Login response: ${JSON.stringify(data, null, 2)}`);
+            document.getElementById("fromHash").value = data.user_hash;
+            await checkBalance();
+            await loadMessages();
+          } else {
+            showNotification(data.error || "Login failed", "error");
+          }
+        } catch (error) {
+          showNotification(`Error: ${error.message}`, "error");
+          addOutput(`Login error: ${error.message}`);
+        }
+      }
+
+      async function logout() {
+        try {
+          const response = await fetch("/api/logout", { method: "POST" });
+          if (response.ok) {
+            showNotification("Successfully logged out", "success");
+            document.getElementById("balanceDisplay").classList.add("hidden");
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
+            document.getElementById("fromHash").value = "";
+            document.getElementById("messagesList").innerHTML = "";
+            addOutput("Logged out successfully");
+          }
+        } catch (error) {
+          showNotification(`Error logging out: ${error.message}`, "error");
+          addOutput(`Logout error: ${error.message}`);
+        }
+      }
+
+      async function checkBalance() {
+        try {
+          const response = await fetch("/api/check-balance");
+          const data = await response.json();
+          if (response.ok) {
+            document
+              .getElementById("balanceDisplay")
+              .classList.remove("hidden");
+            document.getElementById("balanceAmount").textContent = data.balance;
+            showNotification(`Balance updated: ${data.balance} coins`, "info");
+            addOutput(`Current balance: ${data.balance} coins`);
+          } else {
+            showNotification(data.error || "Failed to check balance", "error");
+          }
+        } catch (error) {
+          showNotification(`Error: ${error.message}`, "error");
+          addOutput(`Error checking balance: ${error.message}`);
+        }
+      }
+
+      async function sendCoins() {
+        const fromHash = document.getElementById("fromHash").value;
+        const toHash = document.getElementById("toHash").value;
+        const coins = parseInt(document.getElementById("coins").value);
+        if (!validateHash(fromHash) || !validateHash(toHash)) {
+          showNotification("Invalid hash format", "error");
+          return;
+        }
+        if (isNaN(coins) || coins <= 0) {
+          showNotification("Invalid coin amount", "error");
+          return;
+        }
+        try {
+          showNotification("Processing transaction...", "info");
+          const response = await fetch("/api/send-task", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              from_hash: fromHash,
+              to_hash: toHash,
+              coins: coins,
+            }),
+          });
+          const data = await response.json();
+          if (response.ok) {
+            showNotification("Transaction completed successfully!", "success");
+            addOutput(`Transaction response: ${JSON.stringify(data, null, 2)}`);
+            await checkBalance();
+          } else {
+            showNotification(data.error || "Transaction failed", "error");
+          }
+        } catch (error) {
+          showNotification(`Error: ${error.message}`, "error");
+          addOutput(`Transaction error: ${error.message}`);
+        }
+      }
+
+      async function sendPlainMessage() {
+        const fromHash = document.getElementById("fromHash").value;
+        const toHash = document.getElementById("plainMessageToHash").value;
+        const message = document.getElementById("plainMessageText").value;
+        if (!validateHash(fromHash) || !validateHash(toHash)) {
+          showNotification("Invalid hash format", "error");
+          return;
+        }
+        if (!message) {
+          showNotification("Message is required", "warning");
+          return;
+        }
+        try {
+          const response = await fetch("/api/send-message", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              from_hash: fromHash,
+              to_hash: toHash,
+              message: message,
+            }),
+          });
+          const data = await response.json();
+          if (response.ok) {
+            showNotification("Message sent successfully!", "success");
+            document.getElementById("plainMessageText").value = "";
+            await loadMessages();
+          } else {
+            showNotification(data.error || "Failed to send message", "error");
+          }
+        } catch (error) {
+          showNotification(`Error: ${error.message}`, "error");
+        }
+      }
+
+      async function sendEncryptedMessage() {
+        const fromHash = document.getElementById("fromHash").value;
+        const toHash = document.getElementById("messageToHash").value;
+        const message = document.getElementById("messageText").value;
+        const privateKey = document.getElementById("messagePrivateKey").value;
+        if (!validateHash(fromHash) || !validateHash(toHash)) {
+          showNotification("Invalid hash format", "error");
+          return;
+        }
+        if (!message || !privateKey) {
+          showNotification("Message and private key are required", "warning");
+          return;
+        }
+        try {
+          const encryptResponse = await fetch("/api/encrypt-message", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ private_key: privateKey, text: message }),
+          });
+          const encryptData = await encryptResponse.json();
+          if (!encryptResponse.ok) {
+            throw new Error(encryptData.error || "Encryption failed");
+          }
+          const encryptedMessage = `${encryptData.secret_text};${encryptData.action};${encryptData.random_key};${encryptData.random_number};${encryptData.curlid}`;
+          const sendResponse = await fetch("/api/send-message", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              from_hash: fromHash,
+              to_hash: toHash,
+              message: encryptedMessage,
+            }),
+          });
+          const sendData = await sendResponse.json();
+          if (sendResponse.ok) {
+            showNotification("Encrypted message sent successfully!", "success");
+            document.getElementById("messageText").value = "";
+            document.getElementById("messagePrivateKey").value = "";
+            await loadMessages();
+          } else {
+            showNotification(
+              sendData.error || "Failed to send encrypted message",
+              "error"
+            );
+          }
+        } catch (error) {
+          showNotification(`Error: ${error.message}`, "error");
+        }
+      }
+
+      async function decryptMessage() {
+        const encryptedMessage =
+          document.getElementById("encryptedMessage").value;
+        const privateKey = document.getElementById("decryptPrivateKey").value;
+        if (!encryptedMessage || !privateKey) {
+          showNotification(
+            "Encrypted message and private key are required",
+            "warning"
+          );
+          return;
+        }
+        try {
+          const [secret_text, action, random_key, random_number, curlid] =
+            encryptedMessage.split(";");
+          const response = await fetch("/api/decrypt-message", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              private_key: privateKey,
+              encrypted_object: {
+                type_task: "custom",
+                action: action,
+                secret_text: secret_text,
+                random_key: random_key,
+                random_number: random_number,
+                curlid: curlid,
+              },
+            }),
+          });
+          const data = await response.json();
+          if (response.ok) {
+            const decryptedDisplay = document.getElementById(
+              "decryptedMessageDisplay"
+            );
+            const decryptedText = document.getElementById(
+              "decryptedMessageText"
+            );
+            decryptedDisplay.classList.remove("hidden");
+            decryptedText.textContent =
+              data.message || data.text || "Could not decrypt message";
+            showNotification("Message decrypted successfully", "success");
+          } else {
+            throw new Error(data.error || "Decryption failed");
+          }
+        } catch (error) {
+          showNotification(`Decryption error: ${error.message}`, "error");
+        }
+      }
+
+      async function loadMessages() {
+        try {
+          const response = await fetch("/api/messages");
+          const data = await response.json();
+          if (response.ok) {
+            const messagesList = document.getElementById("messagesList");
+            messagesList.innerHTML = "";
+            if (data.messages.length === 0) {
+              messagesList.innerHTML =
+                '<div class="text-center text-gray-500">No messages found</div>';
+              return;
+            }
+            data.messages
+              .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+              .forEach((message) => {
+                const isOutgoing =
+                  message.from_hash ===
+                  document.getElementById("fromHash").value;
+                const messageElement = document.createElement("div");
+                messageElement.className = "border rounded p-4 bg-white";
+                messageElement.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div class="text-sm text-gray-500">
+                                ${new Date(message.timestamp).toLocaleString()}
+                            </div>
+                            <span class="px-2 py-1 rounded ${
+                              isOutgoing
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-green-100 text-green-800"
+                            }">
+                                ${isOutgoing ? "Sent" : "Received"}
+                            </span>
+                        </div>
+                        <div class="mt-2">
+                            <div class="text-sm font-medium">
+                                ${isOutgoing ? "To: " : "From: "} ${(isOutgoing
+                  ? message.to_hash
+                  : message.from_hash
+                ).substring(0, 16)}...
+                            </div>
+                            <div class="mt-2">
+                                <button class="text-sm bg-gray-100 px-2 py-1 rounded hover:bg-gray-200" 
+                                    onclick="copyToDecrypt('${message.encrypted_message.replace(
+                                      /'/g,
+                                      "\\'"
+                                    )}')">
+                                    Copy to decrypt
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                messagesList.appendChild(messageElement);
+              });
+          } else {
+            showNotification(data.error || "Failed to load messages", "error");
+          }
+        } catch (error) {
+          showNotification(`Error loading messages: ${error.message}`, "error");
+          addOutput(`Error loading messages: ${error.message}`);
+        }
+      }
+
+      function copyToDecrypt(encryptedMessage) {
+        document.getElementById("encryptedMessage").value = encryptedMessage;
+        showNotification("Message copied to decrypt field", "info");
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((content) => content.classList.remove("active"));
+        document
+          .querySelector('[data-tab="encrypted"]')
+          .classList.add("active");
+        document.getElementById("encrypted").classList.add("active");
+      }
+      document.querySelectorAll('.tab-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            // Удаляем активный класс у всех кнопок и контента
+            document.querySelectorAll('.tab-btn').forEach(btn => 
+                btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => 
+                content.classList.remove('active'));
+            
+            // Добавляем активный класс выбранной кнопке и контенту
+            button.classList.add('active');
+            const tabId = button.getAttribute('data-tab');
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+      async function startSolving() {
+        if (isTaskSolving) {
+          showNotification("Tasks are already running", "warning");
+          return;
+        }
+        try {
+          const response = await fetch("/api/start-solving", {
+            method: "POST",
+          });
+          const data = await response.json();
+          if (response.ok) {
+            isTaskSolving = true;
+            document.getElementById("startSolvingBtn").disabled = true;
+            document.getElementById("stopSolvingBtn").disabled = false;
+            showNotification("Task solving started", "success");
+            addOutput(
+              `Started solving tasks: ${JSON.stringify(data, null, 2)}`
+            );
+          } else {
+            showNotification(
+              data.error || "Failed to start solving tasks",
+              "error"
+            );
+          }
+        } catch (error) {
+          showNotification(`Error: ${error.message}`, "error");
+          addOutput(`Error starting task solving: ${error.message}`);
+        }
+      }
+
+      async function stopSolving() {
+        if (!isTaskSolving) {
+          showNotification("No tasks are running", "warning");
+          return;
+        }
+        try {
+          const response = await fetch("/api/stop-solving", { method: "POST" });
+          const data = await response.json();
+          if (response.ok) {
+            isTaskSolving = false;
+            document.getElementById("startSolvingBtn").disabled = false;
+            document.getElementById("stopSolvingBtn").disabled = true;
+            showNotification("Task solving stopped", "success");
+            addOutput(
+              `Stopped solving tasks: ${JSON.stringify(data, null, 2)}`
+            );
+          } else {
+            showNotification(
+              data.error || "Failed to stop solving tasks",
+              "error"
+            );
+          }
+        } catch (error) {
+          showNotification(`Error: ${error.message}`, "error");
+          addOutput(`Error stopping task solving: ${error.message}`);
+        }
+      }
+
+      function filterMessages(type) {
+        const messages = document.querySelectorAll("#messagesList > div");
+        messages.forEach((message) => {
+          const messageText = message.textContent.toLowerCase();
+          switch (type) {
+            case "plain":
+              message.style.display = messageText.includes("encrypted")
+                ? "none"
+                : "block";
+              break;
+            case "encrypted":
+              message.style.display = messageText.includes("encrypted")
+                ? "block"
+                : "none";
+              break;
+            default:
+              message.style.display = "block";
+          }
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadAccounts();
+        document.getElementById("stopSolvingBtn").disabled = true;
+
+        document.querySelectorAll(".tab-btn").forEach((button) => {
+          button.addEventListener("click", () => {
+            document
+              .querySelectorAll(".tab-btn")
+              .forEach((btn) => btn.classList.remove("active"));
+            document
+              .querySelectorAll(".tab-content")
+              .forEach((content) => content.classList.remove("active"));
+
+            button.classList.add("active");
+            const tabId = button.getAttribute("data-tab");
+            document.getElementById(tabId).classList.add("active");
+          });
+        });
+
+        document
+          .getElementById("accountSelect")
+          .addEventListener("change", (e) => {
+            if (e.target.value) {
+              loadAccountData(e.target.value);
+            }
+          });
+
+        document.getElementById("loginBtn").addEventListener("click", login);
+        document.getElementById("logoutBtn").addEventListener("click", logout);
+        document
+          .getElementById("checkBalanceBtn")
+          .addEventListener("click", checkBalance);
+
+        document
+          .getElementById("sendTaskBtn")
+          .addEventListener("click", sendCoins);
+        document.getElementById("coins").addEventListener("input", (e) => {
+          const value = e.target.value;
+          if (value && (isNaN(value) || value <= 0)) {
+            showNotification("Please enter a valid positive number", "warning");
+          }
+        });
+
+        document
+          .getElementById("sendPlainMessageBtn")
+          .addEventListener("click", sendPlainMessage);
+        document
+          .getElementById("sendMessageBtn")
+          .addEventListener("click", sendEncryptedMessage);
+        document
+          .getElementById("decryptMessageBtn")
+          .addEventListener("click", decryptMessage);
+
+        document
+          .getElementById("refreshMessagesBtn")
+          .addEventListener("click", loadMessages);
+        document
+          .getElementById("showAllMessagesBtn")
+          .addEventListener("click", () => filterMessages("all"));
+        document
+          .getElementById("showPlainMessagesBtn")
+          .addEventListener("click", () => filterMessages("plain"));
+        document
+          .getElementById("showEncryptedMessagesBtn")
+          .addEventListener("click", () => filterMessages("encrypted"));
+
+        document
+          .getElementById("startSolvingBtn")
+          .addEventListener("click", startSolving);
+        document
+          .getElementById("stopSolvingBtn")
+          .addEventListener("click", stopSolving);
+
+        setInterval(loadMessages, 30000);
+      });
+
+      document.querySelectorAll('input[type="text"]').forEach((input) => {
+        if (input.id.toLowerCase().includes("hash")) {
+          input.addEventListener("input", (e) => {
+            const value = e.target.value;
+            if (value && !validateHash(value)) {
+              input.classList.add("border-red-500");
+              showNotification(
+                "Invalid hash format. Hash should be 64 hexadecimal characters.",
+                "warning"
+              );
+            } else {
+              input.classList.remove("border-red-500");
+            }
+          });
+        }
+      });
+
+      document.querySelectorAll("input").forEach((input) => {
+        input.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            const form = input.closest("div.space-y-4");
+            if (form) {
+              const button = form.querySelector("button");
+              if (button) {
+                button.click();
+              }
+            }
+          }
+        });
+      });
+
+      document
+        .querySelectorAll('input:not([type="password"])')
+        .forEach((input) => {
+          input.addEventListener("input", (e) => {
+            if (input.value.length === input.maxLength) {
+              const form = input.closest("div.space-y-4");
+              if (form) {
+                const inputs = Array.from(form.querySelectorAll("input"));
+                const index = inputs.indexOf(input);
+                if (index < inputs.length - 1) {
+                  inputs[index + 1].focus();
+                }
+              }
+            }
+          });
+        });
+    </script>
+  </body>
+</html>
