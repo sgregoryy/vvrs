@@ -10,6 +10,8 @@ import logging
 from datetime import timedelta
 import json
 import urllib3
+    
+from concurrent.futures import ProcessPoolExecutor, as_completed, ThreadPoolExecutor
 
 # Отключаем предупреждения SSL
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -103,44 +105,48 @@ def load_account(username):
 
 def save_message(from_hash, to_hash, encrypted_message):
     try:
-        messages_file = MESSAGES_FOLDER / "messages.json"
-        messages = []
+        dialog_participants = sorted([from_hash, to_hash])
+        dialog_id = f"{dialog_participants[0]}_{dialog_participants[1]}"
         
-        if messages_file.exists():
-            try:
-                with open(messages_file, 'r', encoding='UTF-8') as f:
-                    content = f.read()
-                    if content:
-                        messages = json.loads(content)
-            except json.JSONDecodeError:
-                logger.warning("Messages file was corrupted, starting fresh")
-                messages = []
+        dialog_file = MESSAGES_FOLDER / f"dialog_{dialog_id}.json"
+        is_encrypted = len(encrypted_message.get('encrypted_message').split(';')) == 5
         
         new_message = {
             'timestamp': datetime.datetime.now().isoformat(),
             'from_hash': from_hash,
             'to_hash': to_hash,
-            'encrypted_message': encrypted_message
+            'message': encrypted_message,
+            'type': 'encrypted' if is_encrypted else 'plain'
         }
         
+        if dialog_file.exists():
+            with open(dialog_file, 'r', encoding='UTF-8') as f:
+                dialog_data = json.load(f)
+        else:
+            dialog_data = {
+                'participants': dialog_participants,
+                'messages': []
+            }
+        
+        # Проверяем, нет ли уже такого сообщения
         message_exists = any(
             msg['from_hash'] == from_hash and 
             msg['to_hash'] == to_hash and 
-            msg['encrypted_message'] == encrypted_message
-            for msg in messages
+            msg['message'] == encrypted_message
+            for msg in dialog_data['messages']
         )
         
         if not message_exists:
-            messages.append(new_message)
-        
-            with open(messages_file, 'w', encoding='UTF-8') as f:
-                json.dump(messages, f, indent=4)
-            logger.info(f"Saved new message from {from_hash[:8]} to {to_hash[:8]}")
-        else:
-            logger.info(f"Message already exists, skipping")
+            dialog_data['messages'].append(new_message)
+            dialog_data['last_update'] = new_message['timestamp']
             
+            # Сохраняем обновленный диалог
+            with open(dialog_file, 'w', encoding='UTF-8') as f:
+                json.dump(dialog_data, f, indent=4)
+            
+        else:
+            pass            
     except Exception as e:
-        logger.error(f"Error saving message: {str(e)}")
         raise
 
 def get_my_messages():
@@ -150,63 +156,122 @@ def get_my_messages():
             return []
             
         my_hash = blockchain_data['user_hash']
-        messages_file = MESSAGES_FOLDER / "messages.json"
+        all_messages = []
         
-        if not messages_file.exists():
-            return []
-            
-        with open(messages_file, 'r', encoding='UTF-8') as f:
-            all_messages = json.load(f)
-        my_messages = [
-            msg for msg in all_messages 
-            if msg['from_hash'] == my_hash or msg['to_hash'] == my_hash
-        ]
+        for dialog_file in MESSAGES_FOLDER.glob('dialog_*.json'):
+            try:
+                with open(dialog_file, 'r', encoding='UTF-8') as f:
+                    dialog_data = json.load(f)
+                    
+
+                if my_hash in dialog_data['participants']:
+                    for msg in dialog_data['messages']:
+                        all_messages.append({
+                            'timestamp': msg['timestamp'],
+                            'from_hash': msg['from_hash'],
+                            'to_hash': msg['to_hash'],
+                            'encrypted_message': msg['message'],
+                            'type': msg['type']
+                        })
+                    
+            except json.JSONDecodeError:
+                logger.warning(f"Corrupted dialog file: {dialog_file}")
+                continue
+            except Exception as e:
+                logger.error(f"Error reading dialog file {dialog_file}: {str(e)}")
+                continue
         
-        return my_messages
+        all_messages.sort(key=lambda x: x['timestamp'], reverse=True)
+        return all_messages
+        
     except Exception as e:
         logger.error(f"Error getting messages: {str(e)}")
         return []
 
 
+def migrate_old_messages():
+    try:
+        old_messages_file = MESSAGES_FOLDER / "messages.json"
+        if not old_messages_file.exists():
+            return
+            
+        with open(old_messages_file, 'r', encoding='UTF-8') as f:
+            old_messages = json.load(f)
+            
+        for msg in old_messages:
+            save_message(
+                from_hash=msg['from_hash'],
+                to_hash=msg['to_hash'],
+                encrypted_message=msg['encrypted_message']
+            )
+            
+        old_messages_file.rename(old_messages_file.with_suffix('.json.bak'))
+        logger.info("Successfully migrated old messages to new format")
+        
+    except Exception as e:
+        logger.error(f"Error during message migration: {str(e)}")
+
+
+def process_task(blockchain_instance, task):
+    try:
+        task_id = task['id']
+        prev_hash = task.get('prev_hash', '')
+        data = task.get('data_json')
+        if data and all(key in data for key in ['message', 'from_hach', 'to_hach']):
+            try:
+                save_message(
+                    from_hash=data['from_hach'],
+                    to_hash=data['to_hach'],
+                    encrypted_message=data['message']
+                )
+                logger.info(f"Сохранено сообщение от {data['from_hach'][:8]}")
+            except Exception as e:
+                pass
+        result_hash = blockchain_instance.make_hash(prev_hash)
+        solution_data = {
+            'type_task': 'BlockTaskUser_Solution',
+            'id': task_id,
+            'hash': result_hash
+        }
+        
+        send_result = blockchain_instance.send_task(solution_data)
+        logger.info(
+            f"Задача {task_id} обработана. Решение: {result_hash},\n"\
+            f"CurrentTID:{threading.get_ident()},\n"\
+            f"TIDS:{[[thread.name, thread.ident] for thread in threading.enumerate()]}"
+        )
+        
+    except Exception as e:
+        logger.error(f"Ошибка обработки задачи: {str(e)}")
+
 def task_processing(blockchain_instance, session_id):
-    logger.info(f"Starting task processing for session: {session_id}")
+    logger.info(f"Запуск обработки задач для сессии: {session_id}")
+
+    
     while session_id in task_threads and task_threads[session_id]['running']:
         try:
             result = blockchain_instance.get_chains()
             tasks_response = blockchain_instance.get_task().json()
-            logger.info(f"Received tasks: {tasks_response}")
             
             if tasks_response.get('tasks'):
-                for task in tasks_response['tasks']:
-                    task_id = task['id']
-                    prev_hash = task.get('prev_hash', '')
-                    data = task.get('data_json')
-                    
-                    if data:
-                        if all(key in data for key in ['message', 'from_hach', 'to_hach']):
-                            try:
-                                save_message(
-                                    from_hash=data['from_hach'],
-                                    to_hash=data['to_hach'],
-                                    encrypted_message=data['message']
-                                )
-                                logger.info(f"Saved message from {data['from_hach'][:8]}")
-                            except Exception as e:
-                                logger.error(f"Failed to save message: {str(e)}")
-                    
-                    result_hash = blockchain_instance.make_hash(prev_hash)
-
-                    solution_data = {
-                        'type_task': 'BlockTaskUser_Solution',
-                        'id': task_id,
-                        'hash': result_hash
-                    }
-                    send_result = blockchain_instance.send_task(solution_data)
-                    logger.info(f"Task {task_id} processed. Solution: {result_hash}, Result: {send_result.json()}")
+                tasks = tasks_response['tasks']
+                logger.info(f"Получено задач: {len(tasks)}")
+                
+                with ThreadPoolExecutor(max_workers=4) as executor:
+                    futures = [
+                        executor.submit(process_task, blockchain_instance, task)
+                        for task in tasks
+                    ]
+                    for future in as_completed(futures):
+                        future.result()
+            else:
+                logger.info('Нет задач')            
         except Exception as e:
-            logger.error(f"Error in task processing: {str(e)}")
-        time.sleep(2)
-    logger.info(f"Stopping task processing for session: {session_id}")
+            logger.error(f"Ошибка в цикле обработки задач: {str(e)}")
+            
+        time.sleep(20) 
+    
+    logger.info(f"Остановка обработки задач для сессии: {session_id}")
 
 
 @app.route("/")
@@ -518,6 +583,11 @@ if __name__ == "__main__":
     ACCOUNTS_FOLDER.mkdir(exist_ok=True)
     MESSAGES_FOLDER.mkdir(exist_ok=True)
 
+    try:
+        migrate_old_messages()
+    except Exception as e:
+        logger.error(f"Error during message migration: {str(e)}")
+        
     logger.info("Starting Blockchain Web Application")
     logger.info(f"Accounts folder: {ACCOUNTS_FOLDER}")
     logger.info(f"Messages folder: {MESSAGES_FOLDER}")

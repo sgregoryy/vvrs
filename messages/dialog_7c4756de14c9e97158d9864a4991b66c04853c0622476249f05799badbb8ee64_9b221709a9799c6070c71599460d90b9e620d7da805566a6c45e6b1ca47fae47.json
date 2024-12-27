@@ -1,0 +1,37 @@
+{
+    "participants": [
+        "7c4756de14c9e97158d9864a4991b66c04853c0622476249f05799badbb8ee64",
+        "9b221709a9799c6070c71599460d90b9e620d7da805566a6c45e6b1ca47fae47"
+    ],
+    "messages": [
+        {
+            "timestamp": "2024-12-27T01:36:49.952288",
+            "from_hash": "9b221709a9799c6070c71599460d90b9e620d7da805566a6c45e6b1ca47fae47",
+            "to_hash": "7c4756de14c9e97158d9864a4991b66c04853c0622476249f05799badbb8ee64",
+            "message": "fPiUau9aOyjeFA==;e3eeae2b94f3495fb9a2a861b6ef66b1;uE56lRx0gBpUht9sonuAiQ==;TMMy4h/jrq7gGtDb8XxTHA==;U4h3lpo6zrTTTfLiFg9ACA==",
+            "type": "encrypted"
+        },
+        {
+            "timestamp": "2024-12-27T01:36:49.953514",
+            "from_hash": "9b221709a9799c6070c71599460d90b9e620d7da805566a6c45e6b1ca47fae47",
+            "to_hash": "7c4756de14c9e97158d9864a4991b66c04853c0622476249f05799badbb8ee64",
+            "message": "Pq3JKeiBxbA=;ecdee39781fd4fc1925a494e9a0c7895;gQ6xEuxaNOxS2VDgEKzCwA==;FO9rix5NlaCK+x4RMQDnMw==;z14kjNVghtGW3pJmGWuhMw==",
+            "type": "encrypted"
+        },
+        {
+            "timestamp": "2024-12-27T01:36:49.985931",
+            "from_hash": "9b221709a9799c6070c71599460d90b9e620d7da805566a6c45e6b1ca47fae47",
+            "to_hash": "7c4756de14c9e97158d9864a4991b66c04853c0622476249f05799badbb8ee64",
+            "message": "WGG7EsMs;a6a1e84ea49a4f3080e2731f62612abc;BSOW4vk68i2yrtwWNk4X4A==;oIVlNXpCCwnRN20lPjBp4g==;tLWb6/VfmUR8+1zW3xQjJw==",
+            "type": "encrypted"
+        },
+        {
+            "timestamp": "2024-12-27T09:41:57.764404",
+            "from_hash": "9b221709a9799c6070c71599460d90b9e620d7da805566a6c45e6b1ca47fae47",
+            "to_hash": "7c4756de14c9e97158d9864a4991b66c04853c0622476249f05799badbb8ee64",
+            "message": "sosal?",
+            "type": "plain"
+        }
+    ],
+    "last_update": "2024-12-27T09:41:57.764404"
+}

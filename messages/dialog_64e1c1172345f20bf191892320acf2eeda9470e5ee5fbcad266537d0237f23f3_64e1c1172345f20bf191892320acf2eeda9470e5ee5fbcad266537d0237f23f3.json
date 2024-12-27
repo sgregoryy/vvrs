@@ -1,0 +1,16 @@
+{
+    "participants": [
+        "64e1c1172345f20bf191892320acf2eeda9470e5ee5fbcad266537d0237f23f3",
+        "64e1c1172345f20bf191892320acf2eeda9470e5ee5fbcad266537d0237f23f3"
+    ],
+    "messages": [
+        {
+            "timestamp": "2024-12-27T01:36:49.998546",
+            "from_hash": "64e1c1172345f20bf191892320acf2eeda9470e5ee5fbcad266537d0237f23f3",
+            "to_hash": "64e1c1172345f20bf191892320acf2eeda9470e5ee5fbcad266537d0237f23f3",
+            "message": "WJ7vqtQ=",
+            "type": "plain"
+        }
+    ],
+    "last_update": "2024-12-27T01:36:49.998546"
+}

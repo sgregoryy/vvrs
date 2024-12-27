@@ -1,397 +1,371 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Blockchain Client</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
-      rel="stylesheet"
-    />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
     <style>
-        /* Critical styles for tab functionality */
+        .app-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 32px auto;
+            padding: 0 16px;
+            min-height: calc(100vh - 64px);
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
         .tab-content {
             display: none;
+            height: 600px;
         }
+
         .tab-content.active {
             display: block;
         }
-        /* Tab button styles */
+
         .tab-btn {
-            @apply px-4 py-2 text-gray-600 border-b-2 border-transparent;
-            transition: all 0.3s ease;
-        } 
+            padding: 8px 16px;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
         .tab-btn:hover {
-            @apply text-gray-800 border-gray-300;
+            color: #333;
+            border-color: #ddd;
         }
+
         .tab-btn.active {
-            @apply text-blue-600 border-blue-600;
+            color: #2563eb;
+            border-color: #2563eb;
         }
-        /* Animation for content switching */
-        .tab-content {
-            opacity: 0;
-            transition: opacity 0.3s ease;
+
+        /* Messages layout */
+        .messages-container {
+            display: flex;
+            height: 100%;
+            background: white;
         }
-        .tab-content.active {
-            opacity: 1;
+
+        .dialogs-list {
+            width: 320px;
+            min-width: 320px;
+            max-width: 320px;
+            border-right: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            background: white;
         }
-        /* Notification styles */
+
+        .dialogs-header {
+            height: 56px;
+            min-height: 56px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .dialogs-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .dialog-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .dialog-item:hover {
+            background-color: #f9fafb;
+        }
+
+        .dialog-item.active {
+            background-color: #f0f7ff;
+        }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .chat-header {
+            height: 56px;
+            min-height: 56px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #e5e7eb;
+            background: white;
+        }
+
+        .messages-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background: #f9fafb;
+        }
+
+        .input-container {
+            height: 120px;
+            min-height: 120px;
+            padding: 12px 16px;
+            border-top: 1px solid #e5e7eb;
+            background: white;
+        }
+
+        .message {
+            max-width: 85%;
+            margin-bottom: 12px;
+            clear: both;
+        }
+
+        .message.sent {
+            float: right;
+            background: #448aff;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 16px;
+            margin-left: 15%;
+        }
+
+        .message.received {
+            float: left;
+            background: white;
+            padding: 12px 16px;
+            border-radius: 16px;
+            margin-right: 15%;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Fixed buttons container */
+        .bottom-buttons {
+            padding: 24px 0;
+            border-top: 1px solid #e5e7eb;
+            background: white;
+            position: relative;
+            height: 88px;
+            min-height: 88px;
+        }
+
+        /* Notifications */
         #notifications {
-            z-index: 1000;
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 50;
         }
+
         .notification {
-            transition: all 0.3s ease;
-            transform: translateX(100%);
+            padding: 12px 24px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            color: white;
+            animation: slideIn 0.3s ease;
         }
-        .notification.show {
-            transform: translateX(0);
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Other components */
+        .output-container {
+            height: 192px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            margin-top: 24px;
+        }
+
+        #output {
+            height: 100%;
+            overflow-y: auto;
+            padding: 16px;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
     </style>
-  </head>
-  <body class="bg-gray-100">
-    <div id="notifications" class="fixed top-4 right-4 z-50 space-y-2"></div>
+</head>
+<body class="bg-gray-100">
+    <div id="notifications"></div>
 
-    <div class="container mx-auto px-4 py-8 max-w-6xl">
-      <div class="bg-white shadow-lg rounded-lg p-6">
-        <h1 class="text-2xl font-bold mb-6">Blockchain Client</h1>
+    <div class="app-container">
+        <div class="main-content">
+            <!-- Account Section -->
+            <div class="p-6 border-b">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Select Account:</label>
+                    <select id="accountSelect" class="w-full p-2 border rounded">
+                        <option value="">Select an account</option>
+                    </select>
+                </div>
 
-        <!-- Account Section -->
-        <div class="mb-6 pb-6 border-b">
-          <div class="mb-4">
-            <label class="block text-sm font-medium mb-2"
-              >Select Account:</label
-            >
-            <select id="accountSelect" class="w-full p-2 border rounded">
-              <option value="">Select an account</option>
-            </select>
-          </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Username:</label>
+                        <input type="text" id="username" class="w-full p-2 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Password:</label>
+                        <input type="password" id="password" class="w-full p-2 border rounded">
+                    </div>
+                    <div class="flex space-x-4">
+                        <button id="loginBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Login</button>
+                        <button id="checkBalanceBtn" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Check Balance</button>
+                        <button id="logoutBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Logout</button>
+                    </div>
+                    <div id="balanceDisplay" class="text-lg font-semibold hidden">
+                        Balance: <span id="balanceAmount">0</span> coins
+                    </div>
+                </div>
+            </div>
 
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium mb-2">Username:</label>
-              <input
-                type="text"
-                id="username"
-                class="w-full p-2 border rounded"
-              />
+            <!-- Navigation Tabs -->
+            <div class="border-b border-gray-200">
+                <nav class="flex space-x-4 px-6">
+                    <button class="tab-btn active" data-tab="transfer">Transfer Coins</button>
+                    <button class="tab-btn" data-tab="messages">Messages</button>
+                </nav>
             </div>
-            <div>
-              <label class="block text-sm font-medium mb-2">Password:</label>
-              <input
-                type="password"
-                id="password"
-                class="w-full p-2 border rounded"
-              />
+
+            <!-- Tab Contents -->
+            <div id="transfer" class="tab-content active p-6">
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold">Transfer Coins</h2>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">From Hash:</label>
+                        <input type="text" id="fromHash" class="w-full p-2 border rounded" readonly>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">To Hash:</label>
+                        <input type="text" id="toHash" class="w-full p-2 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Amount:</label>
+                        <input type="number" id="coins" class="w-full p-2 border rounded" min="1">
+                    </div>
+                    <button id="sendTaskBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                        Send Coins
+                    </button>
+                </div>
             </div>
-            <div class="flex space-x-4">
-              <button
-                id="loginBtn"
-                class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              >
-                Login
-              </button>
-              <button
-                id="checkBalanceBtn"
-                class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
-              >
-                Check Balance
-              </button>
-              <button
-                id="logoutBtn"
-                class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-              >
-                Logout
-              </button>
+
+            <div id="messages" class="tab-content">
+                <div class="messages-container">
+                    <!-- Левая колонка с диалогами -->
+                    <div class="dialogs-list">
+                        <div class="dialogs-header">
+                            <h2 class="text-xl font-semibold">Conversations</h2>
+                        </div>
+                        <div class="dialogs-scroll" id="dialogsList">
+                            <!-- Диалоги добавляются здесь -->
+                        </div>
+                    </div>
+
+                    <!-- Правая колонка с чатом -->
+                    <div class="chat-area">
+                        <div class="chat-header hidden" id="chatHeader">
+                            <h3 class="font-medium">Chat with: <span id="chatWithUser"></span></h3>
+                        </div>
+                        
+                        <div class="messages-scroll hidden" id="messageArea">
+                            <!-- Сообщения добавляются здесь -->
+                        </div>
+
+                        <div class="input-container hidden" id="messageForm">
+                            <div class="h-8 mb-3 flex items-center">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="messageEncrypted" class="mr-2">
+                                    <span class="text-sm">Encrypted</span>
+                                </label>
+                                <input type="password" id="messagePrivateKey" 
+                                    class="ml-4 px-3 py-1 flex-1 border rounded text-sm hidden"
+                                    placeholder="Private Key">
+                            </div>
+                            
+                            <div class="flex h-10 space-x-2">
+                                <input type="text" id="messageInput" 
+                                    class="flex-1 px-3 border rounded" 
+                                    placeholder="Type your message...">
+                                <button id="sendMessageBtn" 
+                                    class="w-10 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center justify-center">
+                                    <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="noChatSelected" class="flex-1 flex items-center justify-center text-gray-500">
+                            Select a conversation to start messaging
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div id="balanceDisplay" class="text-lg font-semibold hidden">
-              Balance: <span id="balanceAmount">0</span> coins
+
+            <!-- Task Control Buttons -->
+            <div class="bottom-buttons">
+                <div class="flex space-x-4 px-6">
+                    <button id="startSolvingBtn" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                        Start Solving Tasks
+                    </button>
+                    <button id="stopSolvingBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                        Stop Solving Tasks
+                    </button>
+                </div>
             </div>
-          </div>
+
+            <!-- Output Area -->
+            <div class="p-6">
+                <div class="output-container">
+                    <h2 class="text-lg font-semibold px-4 py-2 border-b">Output:</h2>
+                    <div id="output" class="custom-scrollbar"></div>
+                </div>
+            </div>
         </div>
-
-        <!-- Navigation Tabs -->
-        <div class="border-b border-gray-200 mb-6">
-          <nav class="flex space-x-4">
-            <button class="tab-btn active" data-tab="transfer">
-              <span class="flex items-center">
-                <svg
-                  class="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
-                </svg>
-                Transfer Coins
-              </span>
-            </button>
-            <button class="tab-btn" data-tab="messages">
-              <span class="flex items-center">
-                <svg
-                  class="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                  ></path>
-                </svg>
-                Messages
-              </span>
-            </button>
-            <button class="tab-btn" data-tab="encrypted">
-              <span class="flex items-center">
-                <svg
-                  class="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                  ></path>
-                </svg>
-                Encrypted Messages
-              </span>
-            </button>
-            <button class="tab-btn" data-tab="history">
-              <span class="flex items-center">
-                <svg
-                  class="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
-                </svg>
-                History
-              </span>
-            </button>
-          </nav>
-        </div>
-
-        <!-- Tab Contents -->
-        <div id="transfer" class="tab-content active">
-          <div class="space-y-4">
-            <h2 class="text-xl font-semibold">Transfer Coins</h2>
-            <div>
-              <label class="block text-sm font-medium mb-2">From Hash:</label>
-              <input
-                type="text"
-                id="fromHash"
-                class="w-full p-2 border rounded"
-                readonly
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-2">To Hash:</label>
-              <input
-                type="text"
-                id="toHash"
-                class="w-full p-2 border rounded"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-2">Amount:</label>
-              <input
-                type="number"
-                id="coins"
-                class="w-full p-2 border rounded"
-                min="1"
-              />
-            </div>
-            <button
-              id="sendTaskBtn"
-              class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-            >
-              Send Coins
-            </button>
-          </div>
-        </div>
-
-        <div id="messages" class="tab-content">
-          <div class="space-y-4">
-            <h2 class="text-xl font-semibold">Send Message</h2>
-            <div>
-              <label class="block text-sm font-medium mb-2">To Hash:</label>
-              <input
-                type="text"
-                id="plainMessageToHash"
-                class="w-full p-2 border rounded"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-2">Message:</label>
-              <textarea
-                id="plainMessageText"
-                class="w-full p-2 border rounded"
-                rows="3"
-              ></textarea>
-            </div>
-            <button
-              id="sendPlainMessageBtn"
-              class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600"
-            >
-              Send Message
-            </button>
-          </div>
-        </div>
-
-        <div id="encrypted" class="tab-content">
-          <div class="space-y-4">
-            <h2 class="text-xl font-semibold">Send Encrypted Message</h2>
-            <div>
-              <label class="block text-sm font-medium mb-2">To Hash:</label>
-              <input
-                type="text"
-                id="messageToHash"
-                class="w-full p-2 border rounded"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-2">Message:</label>
-              <textarea
-                id="messageText"
-                class="w-full p-2 border rounded"
-                rows="3"
-              ></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-2">Private Key:</label>
-              <input
-                type="password"
-                id="messagePrivateKey"
-                class="w-full p-2 border rounded"
-              />
-            </div>
-            <button
-              id="sendMessageBtn"
-              class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600"
-            >
-              Send Encrypted Message
-            </button>
-          </div>
-
-          <div class="mt-8 space-y-4">
-            <h2 class="text-xl font-semibold">Decrypt Message</h2>
-            <div>
-              <label class="block text-sm font-medium mb-2"
-                >Encrypted Message:</label
-              >
-              <textarea
-                id="encryptedMessage"
-                class="w-full p-2 border rounded"
-                rows="3"
-              ></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-2">Private Key:</label>
-              <input
-                type="password"
-                id="decryptPrivateKey"
-                class="w-full p-2 border rounded"
-              />
-            </div>
-            <button
-              id="decryptMessageBtn"
-              class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
-            >
-              Decrypt Message
-            </button>
-            <div
-              id="decryptedMessageDisplay"
-              class="mt-2 p-4 bg-gray-100 rounded hidden"
-            >
-              <h3 class="font-semibold">Decrypted Message:</h3>
-              <p id="decryptedMessageText" class="mt-2"></p>
-            </div>
-          </div>
-        </div>
-
-        <div id="history" class="tab-content">
-          <div class="space-y-4">
-            <div class="flex justify-between items-center mb-4">
-              <h2 class="text-xl font-semibold">Message History</h2>
-              <div class="space-x-2">
-                <button
-                  id="showAllMessagesBtn"
-                  class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                >
-                  All Messages
-                </button>
-                <button
-                  id="showPlainMessagesBtn"
-                  class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                >
-                  Plain Messages
-                </button>
-                <button
-                  id="showEncryptedMessagesBtn"
-                  class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
-                >
-                  Encrypted Messages
-                </button>
-                <button
-                  id="refreshMessagesBtn"
-                  class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                >
-                  Refresh
-                </button>
-              </div>
-            </div>
-            <div
-              id="messagesList"
-              class="space-y-4 max-h-96 overflow-y-auto"
-            ></div>
-          </div>
-        </div>
-
-        <!-- Task Control Buttons -->
-        <div class="flex space-x-4 mt-6 pt-6 border-t">
-          <button
-            id="startSolvingBtn"
-            class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
-          >
-            Start Solving Tasks
-          </button>
-          <button
-            id="stopSolvingBtn"
-            class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-          >
-            Stop Solving Tasks
-          </button>
-        </div>
-
-        <!-- Output Area -->
-        <div class="border rounded p-4 bg-gray-50 mt-6">
-          <h2 class="text-lg font-semibold mb-2">Output:</h2>
-          <div
-            id="output"
-            class="h-48 overflow-y-auto font-mono text-sm whitespace-pre-wrap"
-          ></div>
-        </div>
-      </div>
     </div>
 
     <script>
       let isTaskSolving = false;
+      let activeDialog = null;
 
       function showNotification(message, type = "info") {
         const notifications = document.getElementById("notifications");
@@ -402,10 +376,13 @@
           success: "bg-green-500",
           warning: "bg-yellow-500",
         };
-        notification.className = `${bgColors[type]} text-white px-6 py-4 rounded-lg shadow-lg max-w-md`;
+        notification.className = `${bgColors[type]} text-white px-6 py-4 rounded-lg shadow-lg max-w-md message-bubble`;
         notification.textContent = message;
         notifications.appendChild(notification);
-        setTimeout(() => notification.remove(), 5000);
+        setTimeout(() => {
+          notification.style.opacity = "0";
+          setTimeout(() => notification.remove(), 300);
+        }, 5000);
       }
 
       function addOutput(message) {
@@ -417,6 +394,338 @@
 
       function validateHash(hash) {
         return /^[a-f0-9]{64}$/.test(hash);
+      }
+
+      // Функция для организации сообщений по диалогам
+      function organizeMessagesByDialog(messages, currentUserHash) {
+        const dialogs = {};
+
+        messages.forEach((msg) => {
+          const otherParticipant =
+            msg.from_hash === currentUserHash ? msg.to_hash : msg.from_hash;
+          const dialogId = [currentUserHash, otherParticipant].sort().join("_");
+          const isEncrypted = msg.encrypted_message.split(";").length === 5;
+
+          if (!dialogs[dialogId]) {
+            dialogs[dialogId] = {
+              id: dialogId,
+              otherParticipant,
+              messages: [],
+              lastUpdate: new Date(msg.timestamp),
+            };
+          }
+
+          dialogs[dialogId].messages.push({
+            ...msg,
+            isEncrypted,
+            isSent: msg.from_hash === currentUserHash,
+            timestamp: new Date(msg.timestamp),
+          });
+
+          const msgDate = new Date(msg.timestamp);
+          if (msgDate > dialogs[dialogId].lastUpdate) {
+            dialogs[dialogId].lastUpdate = msgDate;
+          }
+        });
+
+        // Сортируем сообщения внутри каждого диалога
+        Object.values(dialogs).forEach((dialog) => {
+          dialog.messages.sort((a, b) => a.timestamp - b.timestamp);
+        });
+
+        return dialogs;
+      }
+
+      // Функция форматирования временной метки
+      function formatTimestamp(timestamp) {
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      // Функция усечения хеша
+      function truncateHash(hash) {
+        return `${hash.substring(0, 8)}...${hash.substring(hash.length - 8)}`;
+      }
+
+      // Функция отображения диалогов
+      function renderDialogs(dialogs, currentUserHash) {
+        const dialogsList = document.getElementById("dialogsList");
+        dialogsList.innerHTML = "";
+
+        // Сортируем диалоги по времени последнего сообщения
+        const sortedDialogs = Object.values(dialogs).sort(
+          (a, b) => b.lastUpdate - a.lastUpdate
+        );
+
+        sortedDialogs.forEach((dialog) => {
+          const lastMessage = dialog.messages[dialog.messages.length - 1];
+          const div = document.createElement("div");
+          div.className = `p-4 border-b cursor-pointer hover:bg-gray-50 ${
+            activeDialog === dialog.id ? "bg-blue-50" : ""
+          }`;
+
+          div.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                            </path>
+                        </svg>
+                        <div>
+                            <div class="font-medium">${truncateHash(
+                              dialog.otherParticipant
+                            )}</div>
+                            <div class="text-sm text-gray-500">
+                                ${
+                                  lastMessage.isEncrypted
+                                    ? '<span class="flex items-center"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>Encrypted message</span>'
+                                    : lastMessage.encrypted_message.substring(
+                                        0,
+                                        20
+                                      ) + "..."
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-500">
+                        ${formatTimestamp(lastMessage.timestamp)}
+                    </div>
+                </div>
+            `;
+
+          div.addEventListener("click", () => {
+            activeDialog = dialog.id;
+            showDialog(dialog, currentUserHash);
+            renderDialogs(dialogs, currentUserHash); // Перерисовываем для обновления активного диалога
+          });
+
+          dialogsList.appendChild(div);
+        });
+      }
+
+      // Функция отображения сообщений выбранного диалога
+      function showDialog(dialog, currentUserHash) {
+        document.getElementById("chatHeader").classList.remove("hidden");
+        document.getElementById("messageArea").classList.remove("hidden");
+        document.getElementById("messageForm").classList.remove("hidden");
+        document.getElementById("noChatSelected").classList.add("hidden");
+
+        document.getElementById("chatWithUser").textContent = truncateHash(
+          dialog.otherParticipant
+        );
+
+        const messageArea = document.getElementById("messageArea");
+        messageArea.innerHTML = "";
+
+        dialog.messages.forEach((msg) => {
+          const messageDiv = document.createElement("div");
+          messageDiv.className = `w-full flex ${
+            msg.isSent ? "justify-end" : "justify-start"
+          } mb-4`;
+
+          const messageContent = `
+            <div class="${msg.isSent ? "ml-12" : "mr-12"} max-w-[75%]">
+                <div class="rounded-lg p-3 ${
+                  msg.isSent
+                    ? "bg-blue-500 text-white"
+                    : "bg-white text-gray-900"
+                } shadow">
+                    ${
+                      msg.isEncrypted
+                        ? `
+                        <div class="space-y-2">
+                            <div class="flex items-center space-x-2 text-sm">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                                <span class="whitespace-nowrap">Encrypted Message</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="text-xs font-mono break-all w-full">
+                                    ${msg.encrypted_message.substring(0, 32)}...
+                                </div>
+                                <button 
+                                    onclick="copyToDecrypt('${msg.encrypted_message.replace(
+                                      /'/g,
+                                      "\\'"
+                                    )}')"
+                                    class="p-1 rounded hover:bg-opacity-20 hover:bg-gray-900 flex-shrink-0"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                            d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    `
+                        : `
+                        <div class="break-words">${msg.encrypted_message}</div>
+                    `
+                    }
+                    <div class="text-xs mt-1 ${
+                      msg.isSent ? "text-blue-100" : "text-gray-500"
+                    } text-right">
+                        ${formatTimestamp(msg.timestamp)}
+                    </div>
+                </div>
+            </div>
+        `;
+
+          messageDiv.innerHTML = messageContent;
+          messageArea.appendChild(messageDiv);
+        });
+
+        messageArea.scrollTop = messageArea.scrollHeight;
+      }
+
+      // Функция отправки зашифрованного сообщения
+      async function sendMessageInDialog(
+        toHash,
+        message,
+        isEncrypted,
+        privateKey
+      ) {
+        const fromHash = document.getElementById("fromHash").value;
+
+        try {
+          let finalMessage = message;
+          if (isEncrypted) {
+            const encryptResponse = await fetch("/api/encrypt-message", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ private_key: privateKey, text: message }),
+            });
+            const encryptData = await encryptResponse.json();
+            if (!encryptResponse.ok) {
+              throw new Error(encryptData.error || "Encryption failed");
+            }
+            finalMessage = `${encryptData.secret_text};${encryptData.action};${encryptData.random_key};${encryptData.random_number};${encryptData.curlid}`;
+          }
+
+          const response = await fetch("/api/send-message", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              from_hash: fromHash,
+              to_hash: toHash,
+              message: finalMessage,
+            }),
+          });
+
+          if (response.ok) {
+            showNotification(
+              `${
+                isEncrypted ? "Encrypted message" : "Message"
+              } sent successfully!`,
+              "success"
+            );
+            await loadMessages();
+          } else {
+            const data = await response.json();
+            throw new Error(data.error || "Failed to send message");
+          }
+        } catch (error) {
+          showNotification(error.message, "error");
+          throw error;
+        }
+      }
+
+      // Обработчики событий для чата
+      document
+        .getElementById("messageEncrypted")
+        .addEventListener("change", (e) => {
+          const privateKeyInput = document.getElementById("messagePrivateKey");
+          if (e.target.checked) {
+            privateKeyInput.classList.remove("hidden");
+          } else {
+            privateKeyInput.classList.add("hidden");
+            privateKeyInput.value = "";
+          }
+        });
+
+      document
+        .getElementById("messageInput")
+        .addEventListener("keypress", async (e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            const sendButton = document.getElementById("sendMessageBtn");
+            sendButton.click();
+          }
+        });
+
+      document
+        .getElementById("sendMessageBtn")
+        .addEventListener("click", async () => {
+          if (!activeDialog) return;
+
+          const messageInput = document.getElementById("messageInput");
+          const message = messageInput.value.trim();
+          if (!message) return;
+
+          const isEncrypted =
+            document.getElementById("messageEncrypted").checked;
+          const privateKey = document.getElementById("messagePrivateKey").value;
+          const currentUserHash = document.getElementById("fromHash").value;
+
+          try {
+            const response = await fetch("/api/messages");
+            const data = await response.json();
+            const dialogs = organizeMessagesByDialog(
+              data.messages,
+              currentUserHash
+            );
+            const toHash = dialogs[activeDialog].otherParticipant;
+
+            if (isEncrypted && !privateKey) {
+              showNotification(
+                "Private key is required for encrypted messages",
+                "warning"
+              );
+              return;
+            }
+
+            await sendMessageInDialog(toHash, message, isEncrypted, privateKey);
+
+            messageInput.value = "";
+            if (isEncrypted) {
+              document.getElementById("messagePrivateKey").value = "";
+            }
+          } catch (error) {
+            showNotification(error.message, "error");
+          }
+        });
+
+      // Обновляем функцию загрузки сообщений
+      async function loadMessages() {
+        try {
+          const response = await fetch("/api/messages");
+          const data = await response.json();
+          if (response.ok) {
+            const currentUserHash = document.getElementById("fromHash").value;
+            const dialogs = organizeMessagesByDialog(
+              data.messages,
+              currentUserHash
+            );
+
+            renderDialogs(dialogs, currentUserHash);
+
+            // Если есть активный диалог, обновляем его
+            if (activeDialog && dialogs[activeDialog]) {
+              showDialog(dialogs[activeDialog], currentUserHash);
+            }
+          } else {
+            showNotification(data.error || "Failed to load messages", "error");
+          }
+        } catch (error) {
+          showNotification(`Error loading messages: ${error.message}`, "error");
+          addOutput(`Error loading messages: ${error.message}`);
+        }
       }
 
       async function loadAccounts() {
@@ -496,6 +805,7 @@
             document.getElementById("password").value = "";
             document.getElementById("fromHash").value = "";
             document.getElementById("messagesList").innerHTML = "";
+            activeDialog = null;
             addOutput("Logged out successfully");
           }
         } catch (error) {
@@ -561,230 +871,6 @@
         }
       }
 
-      async function sendPlainMessage() {
-        const fromHash = document.getElementById("fromHash").value;
-        const toHash = document.getElementById("plainMessageToHash").value;
-        const message = document.getElementById("plainMessageText").value;
-        if (!validateHash(fromHash) || !validateHash(toHash)) {
-          showNotification("Invalid hash format", "error");
-          return;
-        }
-        if (!message) {
-          showNotification("Message is required", "warning");
-          return;
-        }
-        try {
-          const response = await fetch("/api/send-message", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              from_hash: fromHash,
-              to_hash: toHash,
-              message: message,
-            }),
-          });
-          const data = await response.json();
-          if (response.ok) {
-            showNotification("Message sent successfully!", "success");
-            document.getElementById("plainMessageText").value = "";
-            await loadMessages();
-          } else {
-            showNotification(data.error || "Failed to send message", "error");
-          }
-        } catch (error) {
-          showNotification(`Error: ${error.message}`, "error");
-        }
-      }
-
-      async function sendEncryptedMessage() {
-        const fromHash = document.getElementById("fromHash").value;
-        const toHash = document.getElementById("messageToHash").value;
-        const message = document.getElementById("messageText").value;
-        const privateKey = document.getElementById("messagePrivateKey").value;
-        if (!validateHash(fromHash) || !validateHash(toHash)) {
-          showNotification("Invalid hash format", "error");
-          return;
-        }
-        if (!message || !privateKey) {
-          showNotification("Message and private key are required", "warning");
-          return;
-        }
-        try {
-          const encryptResponse = await fetch("/api/encrypt-message", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ private_key: privateKey, text: message }),
-          });
-          const encryptData = await encryptResponse.json();
-          if (!encryptResponse.ok) {
-            throw new Error(encryptData.error || "Encryption failed");
-          }
-          const encryptedMessage = `${encryptData.secret_text};${encryptData.action};${encryptData.random_key};${encryptData.random_number};${encryptData.curlid}`;
-          const sendResponse = await fetch("/api/send-message", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              from_hash: fromHash,
-              to_hash: toHash,
-              message: encryptedMessage,
-            }),
-          });
-          const sendData = await sendResponse.json();
-          if (sendResponse.ok) {
-            showNotification("Encrypted message sent successfully!", "success");
-            document.getElementById("messageText").value = "";
-            document.getElementById("messagePrivateKey").value = "";
-            await loadMessages();
-          } else {
-            showNotification(
-              sendData.error || "Failed to send encrypted message",
-              "error"
-            );
-          }
-        } catch (error) {
-          showNotification(`Error: ${error.message}`, "error");
-        }
-      }
-
-      async function decryptMessage() {
-        const encryptedMessage =
-          document.getElementById("encryptedMessage").value;
-        const privateKey = document.getElementById("decryptPrivateKey").value;
-        if (!encryptedMessage || !privateKey) {
-          showNotification(
-            "Encrypted message and private key are required",
-            "warning"
-          );
-          return;
-        }
-        try {
-          const [secret_text, action, random_key, random_number, curlid] =
-            encryptedMessage.split(";");
-          const response = await fetch("/api/decrypt-message", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              private_key: privateKey,
-              encrypted_object: {
-                type_task: "custom",
-                action: action,
-                secret_text: secret_text,
-                random_key: random_key,
-                random_number: random_number,
-                curlid: curlid,
-              },
-            }),
-          });
-          const data = await response.json();
-          if (response.ok) {
-            const decryptedDisplay = document.getElementById(
-              "decryptedMessageDisplay"
-            );
-            const decryptedText = document.getElementById(
-              "decryptedMessageText"
-            );
-            decryptedDisplay.classList.remove("hidden");
-            decryptedText.textContent =
-              data.message || data.text || "Could not decrypt message";
-            showNotification("Message decrypted successfully", "success");
-          } else {
-            throw new Error(data.error || "Decryption failed");
-          }
-        } catch (error) {
-          showNotification(`Decryption error: ${error.message}`, "error");
-        }
-      }
-
-      async function loadMessages() {
-        try {
-          const response = await fetch("/api/messages");
-          const data = await response.json();
-          if (response.ok) {
-            const messagesList = document.getElementById("messagesList");
-            messagesList.innerHTML = "";
-            if (data.messages.length === 0) {
-              messagesList.innerHTML =
-                '<div class="text-center text-gray-500">No messages found</div>';
-              return;
-            }
-            data.messages
-              .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-              .forEach((message) => {
-                const isOutgoing =
-                  message.from_hash ===
-                  document.getElementById("fromHash").value;
-                const messageElement = document.createElement("div");
-                messageElement.className = "border rounded p-4 bg-white";
-                messageElement.innerHTML = `
-                        <div class="flex justify-between items-start">
-                            <div class="text-sm text-gray-500">
-                                ${new Date(message.timestamp).toLocaleString()}
-                            </div>
-                            <span class="px-2 py-1 rounded ${
-                              isOutgoing
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-green-100 text-green-800"
-                            }">
-                                ${isOutgoing ? "Sent" : "Received"}
-                            </span>
-                        </div>
-                        <div class="mt-2">
-                            <div class="text-sm font-medium">
-                                ${isOutgoing ? "To: " : "From: "} ${(isOutgoing
-                  ? message.to_hash
-                  : message.from_hash
-                ).substring(0, 16)}...
-                            </div>
-                            <div class="mt-2">
-                                <button class="text-sm bg-gray-100 px-2 py-1 rounded hover:bg-gray-200" 
-                                    onclick="copyToDecrypt('${message.encrypted_message.replace(
-                                      /'/g,
-                                      "\\'"
-                                    )}')">
-                                    Copy to decrypt
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                messagesList.appendChild(messageElement);
-              });
-          } else {
-            showNotification(data.error || "Failed to load messages", "error");
-          }
-        } catch (error) {
-          showNotification(`Error loading messages: ${error.message}`, "error");
-          addOutput(`Error loading messages: ${error.message}`);
-        }
-      }
-
-      function copyToDecrypt(encryptedMessage) {
-        document.getElementById("encryptedMessage").value = encryptedMessage;
-        showNotification("Message copied to decrypt field", "info");
-        document
-          .querySelectorAll(".tab-btn")
-          .forEach((btn) => btn.classList.remove("active"));
-        document
-          .querySelectorAll(".tab-content")
-          .forEach((content) => content.classList.remove("active"));
-        document
-          .querySelector('[data-tab="encrypted"]')
-          .classList.add("active");
-        document.getElementById("encrypted").classList.add("active");
-      }
-      document.querySelectorAll('.tab-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            // Удаляем активный класс у всех кнопок и контента
-            document.querySelectorAll('.tab-btn').forEach(btn => 
-                btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => 
-                content.classList.remove('active'));
-            
-            // Добавляем активный класс выбранной кнопке и контенту
-            button.classList.add('active');
-            const tabId = button.getAttribute('data-tab');
-            document.getElementById(tabId).classList.add('active');
-        });
-    });
       async function startSolving() {
         if (isTaskSolving) {
           showNotification("Tasks are already running", "warning");
@@ -815,6 +901,25 @@
         }
       }
 
+      function createMessageBubble(message, isSent) {
+        const bubble = document.createElement('div');
+        bubble.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
+        
+        if (message.isEncrypted) {
+          bubble.innerHTML = `
+            <div class="flex items-center space-x-2 mb-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+              <span class="text-sm">Encrypted Message</span>
+            </div>
+            <div class="font-mono text-sm break-all">${message.text.substring(0, 32)}...</div>
+          `;
+        } else {
+          bubble.textContent = message.text;
+        }
+      }
       async function stopSolving() {
         if (!isTaskSolving) {
           showNotification("No tasks are running", "warning");
@@ -843,31 +948,12 @@
         }
       }
 
-      function filterMessages(type) {
-        const messages = document.querySelectorAll("#messagesList > div");
-        messages.forEach((message) => {
-          const messageText = message.textContent.toLowerCase();
-          switch (type) {
-            case "plain":
-              message.style.display = messageText.includes("encrypted")
-                ? "none"
-                : "block";
-              break;
-            case "encrypted":
-              message.style.display = messageText.includes("encrypted")
-                ? "block"
-                : "none";
-              break;
-            default:
-              message.style.display = "block";
-          }
-        });
-      }
-
+      // Инициализация при загрузке страницы
       document.addEventListener("DOMContentLoaded", () => {
         loadAccounts();
         document.getElementById("stopSolvingBtn").disabled = true;
 
+        // Обработчики событий для навигации
         document.querySelectorAll(".tab-btn").forEach((button) => {
           button.addEventListener("click", () => {
             document
@@ -883,6 +969,7 @@
           });
         });
 
+        // События для элементов формы
         document
           .getElementById("accountSelect")
           .addEventListener("change", (e) => {
@@ -896,40 +983,9 @@
         document
           .getElementById("checkBalanceBtn")
           .addEventListener("click", checkBalance);
-
         document
           .getElementById("sendTaskBtn")
           .addEventListener("click", sendCoins);
-        document.getElementById("coins").addEventListener("input", (e) => {
-          const value = e.target.value;
-          if (value && (isNaN(value) || value <= 0)) {
-            showNotification("Please enter a valid positive number", "warning");
-          }
-        });
-
-        document
-          .getElementById("sendPlainMessageBtn")
-          .addEventListener("click", sendPlainMessage);
-        document
-          .getElementById("sendMessageBtn")
-          .addEventListener("click", sendEncryptedMessage);
-        document
-          .getElementById("decryptMessageBtn")
-          .addEventListener("click", decryptMessage);
-
-        document
-          .getElementById("refreshMessagesBtn")
-          .addEventListener("click", loadMessages);
-        document
-          .getElementById("showAllMessagesBtn")
-          .addEventListener("click", () => filterMessages("all"));
-        document
-          .getElementById("showPlainMessagesBtn")
-          .addEventListener("click", () => filterMessages("plain"));
-        document
-          .getElementById("showEncryptedMessagesBtn")
-          .addEventListener("click", () => filterMessages("encrypted"));
-
         document
           .getElementById("startSolvingBtn")
           .addEventListener("click", startSolving);
@@ -937,57 +993,51 @@
           .getElementById("stopSolvingBtn")
           .addEventListener("click", stopSolving);
 
+        // Валидация ввода монет
+        document.getElementById("coins").addEventListener("input", (e) => {
+          const value = e.target.value;
+          if (value && (isNaN(value) || value <= 0)) {
+            showNotification("Please enter a valid positive number", "warning");
+          }
+        });
+
+        // Валидация хешей
+        document.querySelectorAll('input[type="text"]').forEach((input) => {
+          if (input.id.toLowerCase().includes("hash")) {
+            input.addEventListener("input", (e) => {
+              const value = e.target.value;
+              if (value && !validateHash(value)) {
+                input.classList.add("border-red-500");
+                showNotification(
+                  "Invalid hash format. Hash should be 64 hexadecimal characters.",
+                  "warning"
+                );
+              } else {
+                input.classList.remove("border-red-500");
+              }
+            });
+          }
+        });
+
+        // Автоматическое обновление сообщений
         setInterval(loadMessages, 30000);
       });
 
-      document.querySelectorAll('input[type="text"]').forEach((input) => {
-        if (input.id.toLowerCase().includes("hash")) {
-          input.addEventListener("input", (e) => {
-            const value = e.target.value;
-            if (value && !validateHash(value)) {
-              input.classList.add("border-red-500");
-              showNotification(
-                "Invalid hash format. Hash should be 64 hexadecimal characters.",
-                "warning"
-              );
-            } else {
-              input.classList.remove("border-red-500");
-            }
-          });
-        }
-      });
+      function copyToDecrypt(encryptedMessage) {
+        document.getElementById("encryptedMessage").value = encryptedMessage;
+        showNotification("Message copied to decrypt field", "info");
+        // Переключаемся на вкладку расшифровки
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((content) => content.classList.remove("active"));
+        document.querySelector('[data-tab="decrypt"]').classList.add("active");
+        document.getElementById("decrypt").classList.add("active");
+      }
 
-      document.querySelectorAll("input").forEach((input) => {
-        input.addEventListener("keypress", (e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            const form = input.closest("div.space-y-4");
-            if (form) {
-              const button = form.querySelector("button");
-              if (button) {
-                button.click();
-              }
-            }
-          }
-        });
-      });
-
-      document
-        .querySelectorAll('input:not([type="password"])')
-        .forEach((input) => {
-          input.addEventListener("input", (e) => {
-            if (input.value.length === input.maxLength) {
-              const form = input.closest("div.space-y-4");
-              if (form) {
-                const inputs = Array.from(form.querySelectorAll("input"));
-                const index = inputs.indexOf(input);
-                if (index < inputs.length - 1) {
-                  inputs[index + 1].focus();
-                }
-              }
-            }
-          });
-        });
+      // Остальные функции (login, transfer и т.д.) остаются без изменений...
     </script>
   </body>
 </html>

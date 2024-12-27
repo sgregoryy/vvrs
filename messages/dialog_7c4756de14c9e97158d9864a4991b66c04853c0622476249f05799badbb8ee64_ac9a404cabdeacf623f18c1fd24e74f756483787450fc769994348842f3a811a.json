@@ -1,0 +1,30 @@
+{
+    "participants": [
+        "7c4756de14c9e97158d9864a4991b66c04853c0622476249f05799badbb8ee64",
+        "ac9a404cabdeacf623f18c1fd24e74f756483787450fc769994348842f3a811a"
+    ],
+    "messages": [
+        {
+            "timestamp": "2024-12-27T01:36:50.001775",
+            "from_hash": "ac9a404cabdeacf623f18c1fd24e74f756483787450fc769994348842f3a811a",
+            "to_hash": "7c4756de14c9e97158d9864a4991b66c04853c0622476249f05799badbb8ee64",
+            "message": "2323",
+            "type": "plain"
+        },
+        {
+            "timestamp": "2024-12-27T01:36:50.004299",
+            "from_hash": "ac9a404cabdeacf623f18c1fd24e74f756483787450fc769994348842f3a811a",
+            "to_hash": "7c4756de14c9e97158d9864a4991b66c04853c0622476249f05799badbb8ee64",
+            "message": "11111",
+            "type": "plain"
+        },
+        {
+            "timestamp": "2024-12-27T09:41:57.783897",
+            "from_hash": "ac9a404cabdeacf623f18c1fd24e74f756483787450fc769994348842f3a811a",
+            "to_hash": "7c4756de14c9e97158d9864a4991b66c04853c0622476249f05799badbb8ee64",
+            "message": "\u0444\u0432\u0444\u044b\u0432",
+            "type": "plain"
+        }
+    ],
+    "last_update": "2024-12-27T09:41:57.783897"
+}

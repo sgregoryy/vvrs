@@ -1,0 +1,23 @@
+{
+    "participants": [
+        "86d69bffc8e8583b78bb648ac2d7ee912d95bf7cb6951f709c7ff8c3e8c75fc7",
+        "9b221709a9799c6070c71599460d90b9e620d7da805566a6c45e6b1ca47fae47"
+    ],
+    "messages": [
+        {
+            "timestamp": "2024-12-27T01:36:49.971663",
+            "from_hash": "9b221709a9799c6070c71599460d90b9e620d7da805566a6c45e6b1ca47fae47",
+            "to_hash": "86d69bffc8e8583b78bb648ac2d7ee912d95bf7cb6951f709c7ff8c3e8c75fc7",
+            "message": "2J450Zfv;ceb1e3245dcf45a184f71e8ffe68570f;AS9dYScE/RLFJgYXwLFOUQ==;Rf6K7HohYJoAUS3qTK/0jQ==;89i98lWUB0mKYial8IALUw==",
+            "type": "encrypted"
+        },
+        {
+            "timestamp": "2024-12-27T01:36:49.974872",
+            "from_hash": "86d69bffc8e8583b78bb648ac2d7ee912d95bf7cb6951f709c7ff8c3e8c75fc7",
+            "to_hash": "9b221709a9799c6070c71599460d90b9e620d7da805566a6c45e6b1ca47fae47",
+            "message": "aI4=;cc7b279ce32d4cafb39abd39f665a226;Iv961mvrSjaavEg63nZvAw==;dD8VXhTNIkH3YGT3FJo1Rg==;TCFfDCFbthgvXa5CCa3wZg==",
+            "type": "encrypted"
+        }
+    ],
+    "last_update": "2024-12-27T01:36:49.974872"
+}

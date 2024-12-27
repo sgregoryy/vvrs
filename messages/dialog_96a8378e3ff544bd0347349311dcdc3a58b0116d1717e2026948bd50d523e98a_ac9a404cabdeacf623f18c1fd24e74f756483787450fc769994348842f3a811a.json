@@ -1,0 +1,16 @@
+{
+    "participants": [
+        "96a8378e3ff544bd0347349311dcdc3a58b0116d1717e2026948bd50d523e98a",
+        "ac9a404cabdeacf623f18c1fd24e74f756483787450fc769994348842f3a811a"
+    ],
+    "messages": [
+        {
+            "timestamp": "2024-12-27T09:42:03.136218",
+            "from_hash": "ac9a404cabdeacf623f18c1fd24e74f756483787450fc769994348842f3a811a",
+            "to_hash": "96a8378e3ff544bd0347349311dcdc3a58b0116d1717e2026948bd50d523e98a",
+            "message": "salavat darova",
+            "type": "plain"
+        }
+    ],
+    "last_update": "2024-12-27T09:42:03.136218"
+}
